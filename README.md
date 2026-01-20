@@ -1,50 +1,75 @@
 # AnnouncerTool
 
-LobotomyCorp の Announcers MOD を簡単に作成するための Windows Forms GUI ツールです。
+**English** | [日本語](README_ja.md)
 
-## ダウンロード
+This is not a Lobotomy Corporation MOD itself, but a tool to help create announcers for "L Corp's Announcers" MOD.
+It can be used regardless of language.
 
-**一般ユーザーの方はビルド不要です。** [Releases](../../releases) ページからビルド済みの実行ファイルをダウンロードしてください。
+Below is the Quick Start section copied from the readme.
 
-## 使い方（GUI）
+--------------------------------------------------------------------------------
+                            Quick Start
+--------------------------------------------------------------------------------
+1. Launch AnnouncerTool.exe
+2. Click the "Add" button next to "Language:" to add a language code (e.g., "en", "jp")
+3. Click each tag in the list to edit the dialogue
+4. Assign Announcer.png (512x512) and UI.png (345x213)
+5. Select a save folder and click "Save Mod"
+6. Copy the generated folder to Lobotomy Corporation's MOD folder
 
-1. ダウンロードした `AnnouncerTool.exe` を実行します。
+For detailed usage and other features, please refer to the included readme.txt (English/Japanese).
 
-2. アプリでできること:
-   - `Select Save Folder...` で出力先フォルダを選択します（このフォルダに `AnnouncersImage_LEB` 等が作成されます）。
-   - `Add` でアナウンサーを追加し、リストから選択します。
-   - 言語を選び、タグ（例: `AgentDie_TEXT`）ごとにセリフを入力します。
-   - `Assign Image...` でタグに紐づける PNG を選べます（保存時にコピーされます）。
-   - `Save Mod` で指定フォルダへエクスポートします。
-   - `Load Existing` で既存の `AnnouncersXML_LEB.xml` を読み込み、既存テキストや画像を参照できます。
+Let's create your favorite announcers!
 
-注意:
-- 音声ファイルの自動生成は行いません（音声が無くてもゲームは再生しないだけで動作します）。
-- 保存時、各アナウンサーの `Announcer.png` と `UI.png` が存在しない場合はプレースホルダを自動生成します。
+Thanks to LikeEatBanana for creating this mod!
 
-詳しい作り方は添付の `HowToUse_en.txt` を参照してください。
+## Download
+
+**No build required for general users.** Download the pre-built executable from the [Releases](../../releases) page.
+
+## Usage (GUI)
+
+1. Run the downloaded `AnnouncerTool.exe`.
+
+2. What you can do with the app:
+   - Select an output folder with `Select Save Folder...` (folders like `AnnouncersImage_LEB` will be created here).
+   - Add an announcer with `Add` and select it from the list.
+   - Choose a language and enter dialogue for each tag (e.g., `AgentDie_TEXT`).
+   - Use `Assign Image...` to assign a PNG to a tag (it will be copied when saving).
+   - Export to the specified folder with `Save Mod`.
+   - Load an existing `AnnouncersXML_LEB.xml` with `Load Existing` to reference existing text and images.
+
+Notes:
+- Audio files are not auto-generated (the game simply won't play audio if files are missing).
+- When saving, placeholder images are automatically generated if `Announcer.png` or `UI.png` don't exist for each announcer.
+
+For detailed instructions, refer to the included `HowToUse_en.txt`.
 
 ---
 
-## 開発者向け情報
+## Developer Information
 
-### ブランチ運用
+### Branch Strategy
 
-このリポジトリでは全ての開発を `main` ブランチで直接行っています（機能ブランチは使用していません）。
+All development is done directly on the `main` branch (feature branches are not used).
 
-### 必要環境
+### Development Tools
+
+This project is developed using [Claude Code](https://claude.ai/code).
+
+### Requirements
 
 - .NET 8.0 SDK
-- Windows（Windows Forms を使用）
+- Windows (uses Windows Forms)
 
-### ビルド
+### Build
 
 ```bash
 cd AnnouncerTool
 dotnet build -c Release
 ```
 
-### 実行
+### Run
 
 ```bash
 dotnet run --project AnnouncerTool
