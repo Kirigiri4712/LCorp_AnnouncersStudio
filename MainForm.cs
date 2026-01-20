@@ -231,6 +231,7 @@ public class MainForm : Form
     WaveOutEvent? waveOut;
     AudioFileReader? audioReader;
     bool isUpdatingAnnouncerSelection = false;
+    bool isInitializing = true;
 
     // Undo/Redo state (one step only)
     List<Announcer>? undoState = null;
@@ -460,6 +461,9 @@ public class MainForm : Form
 
         // add initial announcer
         AddAnnouncer();
+
+        // Initialization complete
+        isInitializing = false;
     }
 
     void PopulateLanguageComboBox()
@@ -483,7 +487,11 @@ public class MainForm : Form
         {
             Localization.CurrentLanguage = languages[cmbToolLanguage.SelectedIndex];
             ApplyLocalization();
-            SaveSettings();
+            // Don't save settings during initialization
+            if (!isInitializing)
+            {
+                SaveSettings();
+            }
         }
     }
 
