@@ -988,6 +988,23 @@ public class MainForm : Form
         return tag;
     }
 
+    /// <summary>
+    /// Converts internal tag name to XML tag name format.
+    /// Internal: "AgentDie" or "AgentDie_1"
+    /// XML: "AgentDie_TEXT" or "AgentDie_TEXT_1"
+    /// </summary>
+    string ConvertToXmlTagName(string internalTag)
+    {
+        if (internalTag.Contains("_") && int.TryParse(internalTag.Split('_').Last(), out int number))
+        {
+            // Has number suffix like "AgentDie_1" -> "AgentDie_TEXT_1"
+            var baseTag = GetBaseTag(internalTag);
+            return $"{baseTag}_TEXT_{number}";
+        }
+        // No number suffix like "AgentDie" -> "AgentDie_TEXT"
+        return $"{internalTag}_TEXT";
+    }
+
     void RefreshTagList(Announcer a, string lang)
     {
         if (!a.Texts.TryGetValue(lang, out var texts)) return;
@@ -2011,12 +2028,16 @@ public class MainForm : Form
                                 // Add blank line before each element (except the first one)
                                 if (!firstElement)
                                 {
-                                    langRoot.Add(new System.Xml.Linq.XText("\n  "));
+                                    langRoot.Add(new System.Xml.Linq.XText("\n\n  "));
                                 }
                                 firstElement = false;
 
                                 // Add _TEXT suffix for XML element names
-                                langRoot.Add(new XElement(kv.Key + "_TEXT", kv.Value));
+                                // Format: {BaseTag}_TEXT or {BaseTag}_TEXT_{Number}
+                                // Internal key is like "AgentDie" or "AgentDie_1"
+                                // Output should be "AgentDie_TEXT" or "AgentDie_TEXT_1"
+                                var xmlTagName = ConvertToXmlTagName(kv.Key);
+                                langRoot.Add(new XElement(xmlTagName, kv.Value));
                             }
                         }
                     }
