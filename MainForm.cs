@@ -220,7 +220,7 @@ public class MainForm : Form
     TextBox txtTagText;
     ComboBox cmbLanguage;
     ComboBox cmbBaseTags;
-    Button btnAddAnnouncer, btnRemoveAnnouncer, btnSetFolder, btnAssignImage, btnAssignSound, btnPlaySound, btnSaveMod, btnLoadMod, btnAddTag, btnRemoveTag, btnGenerateAllTags, btnAssignAnnouncerImage, btnAssignUIImage, btnAddLanguage, btnRemoveLanguage, btnChangeColor, btnAddPlaceholder;
+    Button btnAddAnnouncer, btnRemoveAnnouncer, btnSetFolder, btnAssignImage, btnRemoveImage, btnAssignSound, btnRemoveSound, btnPlaySound, btnSaveMod, btnLoadMod, btnAddTag, btnRemoveTag, btnGenerateAllTags, btnAssignAnnouncerImage, btnAssignUIImage, btnAddLanguage, btnRemoveLanguage, btnChangeColor, btnAddPlaceholder;
     ListBox lstAgentPlaceholders, lstAbnormalityPlaceholders, lstGlobalPlaceholders;
     Label lblFolder, lblImageAssigned, lblSoundAssigned, lblAnnouncerImage, lblUIImage, lblTagLimit, lblDeleteHint, lblLanguage, lblToolLanguage, lblQuantity, lblAlpha, lblFontSize, lblInstructions, lblDoubleClickHint;
     PictureBox pbAnnouncerImage, pbUIImage, pbTagImage;
@@ -402,18 +402,26 @@ public class MainForm : Form
         chkTranslatePlaceholders.CheckedChanged += (s, e) => UpdatePlaceholderListItems();
         Controls.Add(chkTranslatePlaceholders);
 
-        btnAssignImage = new Button() { Left = 450, Top = 330, Width = 120, Text = "Assign Image..." };
+        btnAssignImage = new Button() { Left = 450, Top = 330, Width = 100, Text = "Assign Image..." };
         btnAssignImage.Click += (s,e)=> AssignImageToSelectedTag();
         Controls.Add(btnAssignImage);
 
-        lblImageAssigned = new Label() { Left = 580, Top = 335, Width = 200, Text = "No image assigned" };
+        btnRemoveImage = new Button() { Left = 555, Top = 330, Width = 25, Text = "×", Visible = false };
+        btnRemoveImage.Click += (s,e)=> RemoveImageFromSelectedTag();
+        Controls.Add(btnRemoveImage);
+
+        lblImageAssigned = new Label() { Left = 585, Top = 335, Width = 195, Text = "No image assigned" };
         Controls.Add(lblImageAssigned);
 
-        btnAssignSound = new Button() { Left = 790, Top = 330, Width = 120, Text = "Assign Sound..." };
+        btnAssignSound = new Button() { Left = 790, Top = 330, Width = 100, Text = "Assign Sound..." };
         btnAssignSound.Click += (s,e)=> AssignSoundToSelectedTag();
         Controls.Add(btnAssignSound);
 
-        btnPlaySound = new Button() { Left = 920, Top = 330, Width = 40, Text = "▶" };
+        btnRemoveSound = new Button() { Left = 895, Top = 330, Width = 25, Text = "×", Visible = false };
+        btnRemoveSound.Click += (s,e)=> RemoveSoundFromSelectedTag();
+        Controls.Add(btnRemoveSound);
+
+        btnPlaySound = new Button() { Left = 925, Top = 330, Width = 40, Text = "▶" };
         btnPlaySound.Click += (s,e)=> PlayAssignedSound();
         Controls.Add(btnPlaySound);
 
@@ -1398,9 +1406,17 @@ public class MainForm : Form
         ShowTagEditUI();
 
         txtTagText.Text = a.Texts[lang].TryGetValue(tag, out var v) ? v : "";
-        lblImageAssigned.Text = a.AssignedImages.TryGetValue(tag, out var p) ? Path.GetFileName(p) : "No image assigned";
-        pbTagImage.Image = a.AssignedImages.TryGetValue(tag, out var imgPath) && !string.IsNullOrEmpty(imgPath) ? Image.FromFile(imgPath) : null;
-        lblSoundAssigned.Text = a.AssignedSounds.TryGetValue(tag, out var sndPath) ? Path.GetFileName(sndPath) : "No sound assigned";
+
+        // Update image assignment display
+        bool hasImage = a.AssignedImages.TryGetValue(tag, out var imgPath) && !string.IsNullOrEmpty(imgPath);
+        lblImageAssigned.Text = hasImage ? Path.GetFileName(imgPath) : Localization.Get("NoImageAssigned");
+        pbTagImage.Image = hasImage ? Image.FromFile(imgPath) : null;
+        btnRemoveImage.Visible = hasImage;
+
+        // Update sound assignment display
+        bool hasSound = a.AssignedSounds.TryGetValue(tag, out var sndPath) && !string.IsNullOrEmpty(sndPath);
+        lblSoundAssigned.Text = hasSound ? Path.GetFileName(sndPath) : Localization.Get("NoSoundAssigned");
+        btnRemoveSound.Visible = hasSound;
 
         // Update placeholder buttons based on selected tag
         UpdatePlaceholderButtons(tag);
@@ -1459,9 +1475,11 @@ public class MainForm : Form
         // They are needed to add/select languages even when no tag is selected
         txtTagText.Visible = false;
         btnAssignImage.Visible = false;
+        btnRemoveImage.Visible = false;
         lblImageAssigned.Visible = false;
         pbTagImage.Visible = false;
         btnAssignSound.Visible = false;
+        btnRemoveSound.Visible = false;
         btnPlaySound.Visible = false;
         lblSoundAssigned.Visible = false;
         chkNormalizeAudio.Visible = false;
@@ -1832,6 +1850,7 @@ public class MainForm : Form
         a.AssignedImages[tag] = imagePath;
         lblImageAssigned.Text = Path.GetFileName(imagePath);
         pbTagImage.Image = Image.FromFile(imagePath);
+        btnRemoveImage.Visible = true;
     }
 
     void AssignSoundToSelectedTag()
@@ -1864,6 +1883,36 @@ public class MainForm : Form
 
         a.AssignedSounds[tag] = sourceFile;
         lblSoundAssigned.Text = Path.GetFileName(sourceFile);
+        btnRemoveSound.Visible = true;
+    }
+
+    void RemoveImageFromSelectedTag()
+    {
+        var aidx = lstAnnouncers.SelectedIndex;
+        if (aidx < 0) return;
+        var tag = lstTags.SelectedItem?.ToString();
+        if (string.IsNullOrEmpty(tag)) return;
+
+        SaveStateForUndo();
+        var a = announcers[aidx];
+        a.AssignedImages.Remove(tag);
+        lblImageAssigned.Text = Localization.Get("NoImageAssigned");
+        pbTagImage.Image = null;
+        btnRemoveImage.Visible = false;
+    }
+
+    void RemoveSoundFromSelectedTag()
+    {
+        var aidx = lstAnnouncers.SelectedIndex;
+        if (aidx < 0) return;
+        var tag = lstTags.SelectedItem?.ToString();
+        if (string.IsNullOrEmpty(tag)) return;
+
+        SaveStateForUndo();
+        var a = announcers[aidx];
+        a.AssignedSounds.Remove(tag);
+        lblSoundAssigned.Text = Localization.Get("NoSoundAssigned");
+        btnRemoveSound.Visible = false;
     }
 
 
